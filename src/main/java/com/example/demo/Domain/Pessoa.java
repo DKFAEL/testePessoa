@@ -21,6 +21,12 @@ public class Pessoa {
 
     // getters e setters
 
+    @PrePersist
+    public  void prePersist() {
+        if (enderecos != null);
+        enderecos.forEach(endereco -> endereco.setPessoa(this));
+    }
+
 
     public Long getId() {
         return id;

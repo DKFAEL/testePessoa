@@ -1,5 +1,6 @@
 package com.example.demo.Domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +20,7 @@ public class Endereco {
 
     private boolean principal;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "pessoa_id")
     private Pessoa pessoa;

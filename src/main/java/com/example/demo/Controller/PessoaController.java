@@ -4,6 +4,7 @@ import com.example.demo.Domain.Endereco;
 import com.example.demo.Domain.Pessoa;
 import com.example.demo.Repository.EnderecoRepository;
 import com.example.demo.Repository.PessoaRepository;
+import com.example.demo.Service.PessoaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,34 +17,32 @@ import java.util.Optional;
 @RequestMapping("/pessoas")
 public class PessoaController {
 
-    @Autowired
-    private PessoaRepository pessoaRepository;
+    private PessoaService pessoaService;
 
     @Autowired
-    private EnderecoRepository enderecoRepository;
+    public PessoaController(PessoaService pessoaService) {
+        this.pessoaService = pessoaService;
+    }
 
     @PostMapping
     public ResponseEntity<Pessoa> criarPessoa(@RequestBody Pessoa pessoa) {
-        Pessoa pessoaCriada = pessoaRepository.save(pessoa);
+        Pessoa pessoaCriada = pessoaService.criarPessoa(pessoa);
         return ResponseEntity.created(URI.create("/pessoas/" + pessoaCriada.getId())).body(pessoaCriada);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Pessoa> editarPessoa(@PathVariable Long id, @RequestBody Pessoa pessoa) {
-        Optional<Pessoa> pessoaExistenteOptional = pessoaRepository.findById(id);
-        if (pessoaExistenteOptional.isPresent()) {
-            pessoa.setId(id);
-            Pessoa pessoaEditada = pessoaRepository.save(pessoa);
+        Pessoa pessoaEditada = pessoaService.editarPessoa(id, pessoa);
+        if (pessoaEditada != null) {
             return ResponseEntity.ok(pessoaEditada);
         }
         return ResponseEntity.notFound().build();
-    };
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Pessoa> consultarPessoa(@PathVariable Long id) {
-        Optional<Pessoa> pessoaOptional = pessoaRepository.findById(id);
-        if (pessoaOptional.isPresent()) {
-            Pessoa pessoa = pessoaOptional.get();
+        Pessoa pessoa = pessoaService.consultarPessoa(id);
+        if (pessoa != null) {
             return ResponseEntity.ok(pessoa);
         }
         return ResponseEntity.notFound().build();
@@ -51,17 +50,14 @@ public class PessoaController {
 
     @GetMapping
     public ResponseEntity<List<Pessoa>> listarPessoas() {
-        List<Pessoa> pessoas = pessoaRepository.findAll();
+        List<Pessoa> pessoas = pessoaService.listarPessoas();
         return ResponseEntity.ok(pessoas);
     }
 
     @PostMapping("/{id}/enderecos")
     public ResponseEntity<Endereco> criarEndereco(@PathVariable Long id, @RequestBody Endereco endereco) {
-        Optional<Pessoa> pessoaOptional = pessoaRepository.findById(id);
-        if (pessoaOptional.isPresent()) {
-            Pessoa pessoa = pessoaOptional.get();
-            endereco.setPessoa(pessoa);
-            Endereco enderecoCriado = enderecoRepository.save(endereco);
+        Endereco enderecoCriado = pessoaService.criarEndereco(id, endereco);
+        if (enderecoCriado != null) {
             return ResponseEntity.created(URI.create("/pessoas/" + id + "/enderecos/" + enderecoCriado.getId())).body(enderecoCriado);
         }
         return ResponseEntity.notFound().build();
@@ -69,51 +65,29 @@ public class PessoaController {
 
     @GetMapping("/{id}/enderecos")
     public ResponseEntity<List<Endereco>> listarEnderecos(@PathVariable Long id) {
-        List<Endereco> enderecos = enderecoRepository.findByPessoaId(id);
+        List<Endereco> enderecos = pessoaService.listarEnderecos(id);
         return ResponseEntity.ok(enderecos);
     }
 
     @PutMapping("/{id}/enderecos/{enderecoId}")
     public ResponseEntity<Endereco> editarEndereco(@PathVariable Long id, @PathVariable Long enderecoId, @RequestBody Endereco endereco) {
-        Optional<Endereco> enderecoExistenteOptional = enderecoRepository.findById(enderecoId);
-        if (enderecoExistenteOptional.isPresent()) {
-            Endereco enderecoExistente = enderecoExistenteOptional.get();
-            if (!enderecoExistente.getPessoa().getId().equals(id)) {
-                return ResponseEntity.badRequest().build();
-            }
-            endereco.setId(enderecoId);
-            Endereco enderecoEditado = enderecoRepository.save(endereco);
+        Endereco enderecoEditado = pessoaService.editarEndereco(id, enderecoId, endereco);
+        if (enderecoEditado != null) {
             return ResponseEntity.ok(enderecoEditado);
         }
         return ResponseEntity.notFound().build();
     }
 
-    @PutMapping("/{id}/enderecos/{enderecoId}/principal")
+    @PutMapping("/{id}/endereco/{enderecoId}")
     public ResponseEntity<Endereco> definirEnderecoPrincipal(@PathVariable Long id, @PathVariable Long enderecoId) {
-        Optional<Pessoa> pessoaOptional = pessoaRepository.findById(id);
-        if (pessoaOptional.isPresent()) {
-            Pessoa pessoa = pessoaOptional.get();
-            Optional<Endereco> enderecoOptional = enderecoRepository.findByPessoaIdAndPrincipalIsTrue(id);
-            if (enderecoOptional.isPresent()) {
-                Endereco enderecoAntigo = enderecoOptional.get();
-                if (enderecoAntigo.getId().equals(enderecoId)) {
-                    return ResponseEntity.badRequest().build();
-                }
-                enderecoAntigo.setPrincipal(false);
-                enderecoRepository.save(enderecoAntigo);
-            }
-            Optional<Endereco> enderecoNovoOptional = enderecoRepository.findById(enderecoId);
-            if (enderecoNovoOptional.isPresent()) {
-                Endereco enderecoNovo = enderecoNovoOptional.get();
-                if (!enderecoNovo.getPessoa().getId().equals(id)) {
-                    return ResponseEntity.badRequest().build();
-                }
-                enderecoNovo.setPrincipal(true);
-                enderecoRepository.save(enderecoNovo);
-                return ResponseEntity.ok(enderecoNovo);
-            }
+        Endereco enderecoDefinido = pessoaService.definirEnderecoPrincipal(id, enderecoId);
+        if (enderecoDefinido != null) {
+            return ResponseEntity.ok(enderecoDefinido);
         }
         return ResponseEntity.notFound().build();
     }
 }
+
+
+
 
