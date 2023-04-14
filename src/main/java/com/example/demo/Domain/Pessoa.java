@@ -19,12 +19,16 @@ public class Pessoa {
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL)
     private List<Endereco> enderecos;
 
-    // getters e setters
+
+
+
+// getters e setters
 
     @PrePersist
-    public  void prePersist() {
-        if (enderecos != null);
-        enderecos.forEach(endereco -> endereco.setPessoa(this));
+    public void prePersist() {
+        if (enderecos != null && !enderecos.isEmpty()) {
+            enderecos.forEach(endereco -> endereco.setPessoa(this));
+        }
     }
 
 
