@@ -22,6 +22,7 @@ public class PopulateService {
 
     @PostConstruct
     public void populateData() {
+
         Pessoa pessoa1 = new Pessoa();
         pessoa1.setNome("João");
         pessoa1.setDataNascimento(LocalDate.of(1985, 3, 15));
@@ -31,7 +32,7 @@ public class PopulateService {
         Pessoa pessoa2 = new Pessoa();
         pessoa2.setNome("Lucia");
         pessoa2.setDataNascimento(LocalDate.of(1995, 4, 24));
-        pessoa2 = pessoaRepository.save(pessoa2);
+        pessoaRepository.save(pessoa2);
 
         Endereco endereco1Pessoa1 = new Endereco();
         endereco1Pessoa1.setLogradouro("Rua 1");
